@@ -1,13 +1,13 @@
 import { ApiProperty } from "@nestjs/swagger"
-import { Transform, Type } from "class-transformer"
-import { IsArray, IsDateString, IsNotEmpty, IsString } from "class-validator"
+import { IsArray, IsDateString, IsNotEmpty, IsString, MaxLength, ValidateNested } from "class-validator"
 
 export class ValidatePeopleInputDto {
   @IsNotEmpty()
   @IsString()
   @ApiProperty({
     example: "john-wick@any.com",
-    required: true
+    required: true,
+    maxLength: 32
   })
   apelido: string
 
@@ -15,7 +15,8 @@ export class ValidatePeopleInputDto {
   @IsString()
   @ApiProperty({
     example: "96c4f952-ace3-45c4-bc64-10e7ba3345dd",
-    required: true
+    required: true,
+    maxLength: 100
   })
   nome: string
 
@@ -28,16 +29,13 @@ export class ValidatePeopleInputDto {
   })
   nascimento: string
 
-  @IsNotEmpty()
-  @Transform(({ value }) => {
-    if (!Array.isArray(value)) return [value]
-    return value
-  })
-  @Type(() => String)
   @IsArray()
+  @MaxLength(32, { each: true })
+  @IsString({ each: true })
   @ApiProperty({
+    isArray: true,
     example: ["Node", "C#", "Java"],
-    required: true
+    required: false,
   })
-  stack: string[]
+  stack: string[];
 }

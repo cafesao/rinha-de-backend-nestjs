@@ -1,9 +1,9 @@
+import { NotFoundException } from "@nestjs/common"
 import { PrismaClient } from "@prisma/client"
 import { PeopleAssembler } from "src/people/application/assemblers/people.assembler"
 import { IFindOneByIdPeoplesQuery } from "src/people/application/queries/find-one-by-id-peoples.query"
 export class FindOneByIdPeoplesQueryPrismaAdapter
-  implements IFindOneByIdPeoplesQuery
-{
+  implements IFindOneByIdPeoplesQuery {
   private readonly client: PrismaClient
   constructor() {
     this.client = new PrismaClient()
@@ -17,6 +17,11 @@ export class FindOneByIdPeoplesQueryPrismaAdapter
         id: input.id
       }
     })
+
+    if (!people) {
+      throw new NotFoundException()
+    }
+
     return PeopleAssembler.assembly(people)
   }
 }

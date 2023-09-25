@@ -9,9 +9,7 @@ export class CountPeopleQueryPrismaAdapter implements ICountPeoplesQuery {
   async execute(
     input: ICountPeoplesQuery.Input
   ): Promise<ICountPeoplesQuery.Output> {
-    const people = await this.client.people.count()
-    return {
-      count: people
-    }
+    const count = await this.client.people.count()
+    return count
   }
 }

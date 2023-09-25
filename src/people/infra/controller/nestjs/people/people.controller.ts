@@ -7,20 +7,22 @@ import {
   Param,
   Post,
   Query,
-  ValidationPipe
-
+  ValidationPipe,
+  Response
 } from "@nestjs/common"
 import { ApiOperation, ApiTags, ApiDefaultResponse } from "@nestjs/swagger"
 import { ApiErrorResponse } from "src/commons/decorators"
 import { PeopleEnums } from "src/people/domain/enums/people.enums"
 import { PeopleProvider } from "src/people/infra/ioc/nestjs/people.provider"
-import { ValidatePeopleInputDto } from "./input/validate-coupon.input.dto"
+import { ValidatePeopleInputDto } from "./input/validate-people.input.dto"
 import { IFindManyByTermsPeoplesQuery } from "src/people/application/queries/find-many-by-terms-peoples.query"
 import { IFindOneByIdPeoplesQuery } from "src/people/application/queries/find-one-by-id-peoples.query"
 import { ICreatePeopleCommands } from "src/people/application/commands/create.commands"
 import { ICountPeoplesQuery } from "src/people/application/queries/count-peoples.query"
 import { PeopleOutput } from 'src/people/infra/controller/nestjs/people'
 import { CountPeopleOutput } from "src/people/infra/controller/nestjs/people/output/count.dto"
+import { Response as Res } from "express"
+import { ValidateTermsInputDto } from "src/people/infra/controller/nestjs/people/input/terms.input.dto"
 
 @ApiTags("Pessoas")
 @Controller()
@@ -47,13 +49,16 @@ export class PeopleController {
     message: PeopleEnums.Exceptions.PEOPLE_EXIST_IN_DB,
     status: HttpStatus.CONFLICT
   })
-  async create(@Body(ValidationPipe) input: ValidatePeopleInputDto) {
-    return this.createPeopleCommand.execute({
+  async create(@Body(ValidationPipe) input: ValidatePeopleInputDto,
+    @Response({ passthrough: true }) res: Res) {
+    const data = await this.createPeopleCommand.execute({
       nickname: input.apelido,
       name: input.nome,
       birthday: input.nascimento,
       stack: input.stack
     })
+    res.header('Location', `/pessoas/${data.id}`)
+    return data
   }
 
   @ApiOperation({ description: "Get people with ID" })
@@ -84,9 +89,13 @@ export class PeopleController {
     message: PeopleEnums.Exceptions.NOT_FOUND_PEOPLE,
     status: HttpStatus.NOT_FOUND
   })
-  async getWithTerms(@Query("t") terms: string) {
+  async getWithTerms(@Query(new ValidationPipe({
+    transform: true,
+    transformOptions: { enableImplicitConversion: true },
+    forbidNonWhitelisted: true
+  })) query: ValidateTermsInputDto) {
     return this.findManyPeopleQuery.execute({
-      terms
+      terms: query.t
     })
   }
 

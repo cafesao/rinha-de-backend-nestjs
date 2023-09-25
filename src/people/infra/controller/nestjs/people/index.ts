@@ -1,2 +1,2 @@
 export * from './output/people.dto'
-export * from './input/validate-coupon.input.dto'
+export * from './input/validate-people.input.dto'
