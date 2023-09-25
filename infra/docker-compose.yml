@@ -8,6 +8,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      migratedb:
+        condition: service_completed_successfully        
     expose:
       - "3000"
     deploy:
@@ -24,6 +26,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      migratedb:
+        condition: service_completed_successfully
     expose:
       - "3000"
     deploy:
@@ -31,6 +35,17 @@ services:
         limits:
           cpus: '0.25'
           memory: '0.25GB'
+  
+  migratedb:
+    image: node:lts-alpine3.18
+    command: npx prisma migrate deploy
+    volumes: 
+      - ../prisma:/prisma
+    environment:
+      DATABASE_URL: postgresql://local:local123@db:5432/mydb
+    depends_on:
+      db:
+        condition: service_healthy
 
   nginx: # Load Balancer
     image: nginx:latest

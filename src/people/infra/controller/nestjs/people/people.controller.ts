@@ -8,7 +8,9 @@ import {
   Post,
   Query,
   ValidationPipe,
-  Response
+  Response,
+  UnprocessableEntityException,
+  BadRequestException
 } from "@nestjs/common"
 import { ApiOperation, ApiTags, ApiDefaultResponse } from "@nestjs/swagger"
 import { ApiErrorResponse } from "src/commons/decorators"
@@ -51,6 +53,19 @@ export class PeopleController {
   })
   async create(@Body(ValidationPipe) input: ValidatePeopleInputDto,
     @Response({ passthrough: true }) res: Res) {
+    if (input.nome === null || input.apelido === null) {
+      throw new UnprocessableEntityException()
+    }
+    if (typeof input.nome !== "string") {
+      throw new BadRequestException()
+    }
+    if (Array.isArray(input.stack) && input.stack.length > 0) {
+      input.stack.forEach((stack) => {
+        if (typeof stack !== "string") {
+          throw new BadRequestException()
+        }
+      })
+    }
     const data = await this.createPeopleCommand.execute({
       nickname: input.apelido,
       name: input.nome,
